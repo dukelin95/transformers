@@ -162,6 +162,7 @@ class GPT2Config(PretrainedConfig):
         eos_token_id=50256,
         scale_attn_by_inverse_layer_idx=False,
         reorder_and_upcast_attn=False,
+        lora=False,
         **kwargs,
     ):
         self.vocab_size = vocab_size
@@ -188,6 +189,8 @@ class GPT2Config(PretrainedConfig):
 
         self.bos_token_id = bos_token_id
         self.eos_token_id = eos_token_id
+
+        self.lora = lora
 
         super().__init__(bos_token_id=bos_token_id, eos_token_id=eos_token_id, **kwargs)
 
