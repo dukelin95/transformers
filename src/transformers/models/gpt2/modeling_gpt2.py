@@ -48,6 +48,7 @@ from ...utils import (
 from ...utils.model_parallel_utils import assert_device_map, get_device_map
 from .configuration_gpt2 import GPT2Config
 
+from .lora import Conv1dLoRA
 
 logger = logging.get_logger(__name__)
 
@@ -346,8 +347,12 @@ class GPT2MLP(nn.Module):
     def __init__(self, intermediate_size, config):
         super().__init__()
         embed_dim = config.hidden_size
-        self.c_fc = Conv1D(intermediate_size, embed_dim)
-        self.c_proj = Conv1D(embed_dim, intermediate_size)
+        if config.lora:
+            self.c_fc = Conv1dLoRA(intermediate_size, embed_dim)
+            self.c_proj = Conv1dLoRA(embed_dim, intermediate_size)
+        else:
+            self.c_fc = Conv1D(intermediate_size, embed_dim)
+            self.c_proj = Conv1D(embed_dim, intermediate_size)
         self.act = ACT2FN[config.activation_function]
         self.dropout = nn.Dropout(config.resid_pdrop)
 
@@ -372,6 +377,7 @@ class GPT2Block(nn.Module):
         if config.add_cross_attention:
             self.crossattention = GPT2Attention(config, is_cross_attention=True, layer_idx=layer_idx)
             self.ln_cross_attn = nn.LayerNorm(hidden_size, eps=config.layer_norm_epsilon)
+
 
         self.mlp = GPT2MLP(inner_dim, config)
 
